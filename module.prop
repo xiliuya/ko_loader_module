@@ -1,0 +1,6 @@
+id=kernel_ko_loader
+name=Kernel KO Loader & Mounter
+version=v1.0
+versionCode=1
+author=xiliuya
+description=Loads kernel modules in post-fs-data and mounts files to specified paths.
