@@ -17,14 +17,18 @@ if [ -f "$SOURCE_FILE" ] && [ -f "$TARGET_PATH" ]; then
 	# 打印出具体的加载结果，方便你调试看日志
 	echo "$INSMOD_OUTPUT"
 
-	# 判断：如果退出码不为 0，或者输出中包含了 "Exec" 错误
-	if [ $INSMOD_STATUS -ne 0 ] || echo "$INSMOD_OUTPUT" | grep -q "Exec"; then
-		echo "检测到 insmod 失败或出现格式错误，跳过 bind mount。"
+	# 【修改这里】：使用 && 确保“退出码不为 0”与“包含 Exec”同时成立时才跳过
+	if [ $INSMOD_STATUS -ne 0 ] && echo "$INSMOD_OUTPUT" | grep -q "Exec"; then
+		echo "检测到 insmod 失败且为格式错误 (Exec)，跳过 bind mount。"
 	else
-		# 只有在 insmod 完全成功时，才执行挂载
+		# 只要不同时满足（例如模块已加载导致的非 0 退出），照常执行挂载
 		umount "$TARGET_PATH" 2>/dev/null
 		mount -o bind "$SOURCE_FILE" "$TARGET_PATH"
-		echo "insmod 成功，已完成 bind mount。"
+		if [ $? -eq 0 ]; then
+			echo "insmod 处理完成，已成功完成 bind mount。"
+		else
+			echo "Bind mount 执行失败，请检查挂载点权限。"
+		fi
 	fi
 
 fi
